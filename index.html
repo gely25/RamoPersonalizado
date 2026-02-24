@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atelier Floral – Premium Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1610;--gold:#c9a040;--gold-light:#e0c870;--cream:#f5edd6;
+  --muted:rgba(212,201,168,0.42);--panel:rgba(18,36,20,0.65);--border:rgba(201,160,64,0.18);
+}
+html,body{height:100%;font-family:'Jost',sans-serif;background:var(--bg);color:var(--cream);overflow-x:hidden}
+.app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+
+/* HEADER */
+header{text-align:center;padding:15px;border-bottom:1px solid var(--border)}
+.brand{font-family:'Cinzel',serif;font-size:9px;letter-spacing:7px;color:var(--gold);text-transform:uppercase}
+h1{font-family:'Cinzel',serif;font-size:24px;font-weight:400;letter-spacing:2px}
+
+/* STEPS */
+.steps-bar{display:flex;justify-content:center;align-items:center;padding:10px}
+.si{display:flex;align-items:center;gap:8px;opacity:0.3;transition:opacity .5s}
+.si.active{opacity:1}
+.sn{width:26px;height:26px;border-radius:50%;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--gold)}
+.sl{font-size:10px;text-transform:uppercase;letter-spacing:2px}
+.sc{width:20px;height:1px;background:var(--gold);margin:0 10px;opacity:0.2}
+
+/* WORKSPACE */
+.workspace{flex:1;display:grid;grid-template-columns:220px 1fr 240px;padding:20px;max-width:1250px;margin:0 auto;width:100%;gap:20px}
+
+/* CATALOG */
+.clist{display:flex;flex-direction:column;gap:10px}
+.fcard{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:0.3s}
+.fcard:hover{border-color:var(--gold);transform:translateX(5px)}
+.fcard.locked{opacity:0.2;cursor:default;pointer-events:none}
+.fcard-img{width:40px;height:60px;object-fit:contain}
+.fname{font-family:'Cinzel',serif;font-size:11px}
+.fprice{font-family:'Cinzel',serif;font-size:14px;color:var(--gold);margin-left:auto}
+
+/* STAGE */
+.bouquet-area{display:flex;flex-direction:column;align-items:center}
+.stage-outer{
+  position:relative;
+  width:400px;height:650px;
+  background: radial-gradient(circle at 50% 50%, rgba(20,40,25,0.4) 0%, transparent 70%);
+  overflow: hidden;
+  border-bottom: 2px solid rgba(201,160,64,0.1);
+  cursor: crosshair;
+}
+
+.wrap-part {
+  position: absolute; bottom:-50px; left:50%; transform: translateX(-50%) translate3d(var(--tx,0),var(--ty,0),0) scale(var(--tw,1));
+  width:460px; pointer-events:auto !important; opacity:0; transition:opacity 0.6s, background-color 0.4s;
+  -webkit-user-drag: none; cursor:grab;
+  display: flex; flex-direction: column; align-items: center;
+  --wc: #e8dfcc; /* color base natural */
+}
+.wrap-part.visible { opacity: 1; }
+.wrap-part.selected { outline: 1px solid var(--gold); filter: drop-shadow(0 0 10px rgba(201,160,64,0.3)); }
+
+.wrap-color {
+  position: absolute; inset: 0;
+  background-color: var(--wc);
+  -webkit-mask: url("Highly_realistic_bou-removebg-preview 1.png") no-repeat bottom center / contain;
+  mask: url("Highly_realistic_bou-removebg-preview 1.png") no-repeat bottom center / contain;
+  transition: background-color 0.4s;
+}
+.wrap-texture {
+  width: 100%; height: auto; display: block;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  filter: contrast(1.1) brightness(1.05); /* realzar sombras */
+}
+
+.wrap-back { z-index: 1; }
+.wrap-back .wrap-color { filter: brightness(0.85); }
+.wrap-back .wrap-texture { filter: brightness(0.8); }
+
+.wrap-front { 
+  z-index: 20; 
+  clip-path: polygon(0 42%, 48% 68%, 52% 68%, 100% 42%, 100% 100%, 0 100%); 
+}
+
+/* Flowers */
+.pfl-container {
+  position: absolute;
+  pointer-events: none;
+  transform-origin: center center;
+  z-index: 10;
+}
+.pfl {
+  position: absolute;
+  width: 100%; height: 100%;
+  pointer-events: auto !important; 
+  cursor: grab;
+  user-select: none;
+  -webkit-user-drag: none;
+  transform-origin: center center;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  -webkit-mask-image: linear-gradient(to bottom, black 35%, transparent 68%);
+  mask-image: linear-gradient(to bottom, black 35%, transparent 68%);
+}
+.pfl-container.selected { z-index: 15 !important; }
+.pfl-container.selected .pfl { filter: drop-shadow(0 0 15px var(--gold)); }
+
+/* Premium Rotation UI In-Canvas */
+.rotation-ring {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(201,160,64,0.3);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  transform: rotate(var(--ring-rot, 0deg));
+}
+.pfl-container.selected .rotation-ring { opacity: 1; }
+
+.rotation-handle {
+  position: absolute;
+  top: -10px; left: 50%; transform: translateX(-50%);
+  width: 20px; height: 20px;
+  background: var(--bg); border: 1.5px solid var(--gold);
+  border-radius: 50%; cursor: grab; pointer-events: auto;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, transform 0.1s;
+}
+.rotation-handle:hover { background: var(--gold); transform: translateX(-50%) scale(1.2); }
+.rotation-handle svg { width: 10px; height: 10px; color: var(--gold); }
+.rotation-handle:hover svg { color: var(--bg); }
+
+.angle-badge {
+  position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%);
+  background: rgba(12,22,16,0.85); color: var(--gold);
+  padding: 3px 10px; border-radius: 20px; font-size: 10px; border: 1px solid var(--border);
+  opacity: 0; pointer-events: none; backdrop-filter: blur(4px);
+}
+.pfl-container.selected .angle-badge { opacity: 1; }
+
+/* Selection Controls Panel */
+.adj-controls {
+  position: absolute; top: 10px; right: 10px;
+  background: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid var(--gold);
+  display: flex; opacity: 0; pointer-events: none; flex-direction: column; gap: 15px;
+  z-index: 1000; backdrop-filter: blur(12px); width: 240px; transition: 0.3s;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+.adj-controls.show { opacity: 1; pointer-events: auto; }
+
+.adj-title { font-family: Cinzel; color: var(--gold); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+/* Dial logic */
+.dial-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.dial {
+  width: 80px; height: 80px; border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: radial-gradient(circle at 35% 35%, #1e2b20, #0d110e);
+  position: relative; cursor: grab;
+  box-shadow: 0 0 0 6px rgba(201,160,64,0.04), inset 0 2px 5px rgba(0,0,0,0.5);
+}
+.dial:hover { border-color: rgba(201,160,64,0.5); }
+.dial-dot {
+  position: absolute; width: 6px; height: 6px; background: var(--gold);
+  border-radius: 50%; top: 8px; left: 50%; transform: translateX(-50%);
+  box-shadow: 0 0 8px var(--gold);
+}
+
+/* Arc Visualizer */
+.arc-container { position: relative; height: 60px; display: flex; justify-content: center; }
+.arc-svg { width: 140px; height: 80px; overflow: visible; }
+
+.quick-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.quick-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  font-size: 9px; padding: 6px 2px; border-radius: 4px; cursor: pointer; transition: 0.2s;
+}
+.quick-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,160,64,0.05); }
+
+/* Scale Slider */
+.scale-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; }
+.scale-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 10px; color: var(--gold); }
+input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
+
+.reset-btn {
+  width: 100%; border: 1px solid var(--border); background: transparent; color: var(--muted);
+  padding: 8px; font-size: 9px; letter-spacing: 1px; border-radius: 4px; cursor: pointer; transition: 0.2s;
+}
+.reset-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* Botón eliminar flor */
+.delete-btn {
+  width: 100%; border: 1px solid rgba(220,60,60,0.4); background: transparent; color: rgba(220,100,100,0.8);
+  padding: 8px; font-size: 9px; letter-spacing: 1px; border-radius: 4px; cursor: pointer; transition: 0.2s;
+  margin-top: 6px;
+}
+.delete-btn:hover { border-color: #e05050; background: rgba(220,60,60,0.12); color: #f08080; }
+
+
+/* Rotation bar con botones +/- */
+.rot-bar-row {
+  display: flex; align-items: center; gap: 6px;
+}
+.rot-step-btn {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--gold); font-size: 14px; font-weight: bold;
+  border-radius: 4px; cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.rot-step-btn:hover { border-color: var(--gold); background: rgba(201,160,64,0.1); }
+
+/* Color Selector */
+.color-group { margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; }
+.color-label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+.color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.color-swatch {
+  aspect-ratio: 1; border-radius: 50%; border: 1.5px solid var(--border);
+  cursor: pointer; transition: 0.2s; position: relative;
+}
+.color-swatch:hover { transform: scale(1.1); border-color: var(--gold); }
+.color-swatch.active { border-color: var(--gold); box-shadow: 0 0 10px rgba(201,160,64,0.3); }
+.color-swatch.active::after {
+  content: '✓'; position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; color: var(--gold); font-weight: bold;
+}
+
+/* Right Panel */
+.sum-list { display: flex; flex-direction: column; gap: 5px; }
+.ri { display: flex; align-items: center; gap: 10px; padding: 5px; background: rgba(255,255,255,0.03); border-radius: 5px; font-size: 10px; }
+.ri img { width: 15px; height: 25px; object-fit: contain; }
+
+.price-box { margin-top: 20px; text-align: center; border: 1px solid var(--border); padding: 15px; border-radius: 8px; }
+.price-val { font-family: Cinzel; font-size: 28px; color: var(--gold); }
+
+.act-btn {
+  width: 100%; border: none; background: var(--gold); color: #000; padding: 15px;
+  margin-top: 15px; border-radius: 5px; font-family: Cinzel; text-transform: uppercase;
+  letter-spacing: 2px; cursor: pointer; opacity: 0.3; pointer-events: none; transition: 0.3s;
+}
+.act-btn.on { opacity: 1; pointer-events: auto; }
+
+/* Final View */
+.done-ov { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 1s; }
+.done-ov.show { opacity: 1; pointer-events: auto; }
+
+/* Snap Flash Effect */
+@keyframes snapFlash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.snap-flash {
+  position: absolute; inset: -25px; border: 2px solid var(--gold); border-radius: 50%;
+  animation: snapFlash 0.4s ease-out forwards; pointer-events: none;
+}
+
+/* ===== PANTALLA SELECCIÓN DE TAMAÑO ===== */
+#sizeScreen {
+  position: fixed; inset: 0; z-index: 8888;
+  background: radial-gradient(ellipse at 50% 0%, rgba(20,48,24,0.98) 0%, #0c1610 70%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 30px 20px;
+  transition: opacity 0.8s, transform 0.8s;
+}
+#sizeScreen.hide {
+  opacity: 0; transform: translateY(-30px); pointer-events: none;
+}
+.sz-brand { font-family:'Cinzel',serif; font-size:9px; letter-spacing:8px; color:var(--gold); text-transform:uppercase; margin-bottom:8px; }
+.sz-title {
+  font-family:'Cormorant Garamond',serif; font-size:clamp(26px,5vw,42px);
+  font-weight:300; letter-spacing:3px; text-align:center;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 6px;
+}
+.sz-subtitle { font-size:12px; color:var(--muted); letter-spacing:2px; text-align:center; margin-bottom:40px; text-transform:uppercase; }
+
+.sz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px; width: 100%; max-width: 920px;
+}
+
+.sz-card {
+  position: relative; overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 24px 28px;
+  cursor: pointer;
+  transition: border-color 0.35s, transform 0.35s, box-shadow 0.35s;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.sz-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(201,160,64,0.07) 0%, transparent 70%);
+  opacity: 0; transition: opacity 0.4s;
+}
+.sz-card:hover { border-color: var(--gold); transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(201,160,64,0.08); }
+.sz-card:hover::before { opacity: 1; }
+.sz-card.selected { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 20px 60px rgba(201,160,64,0.12); transform: translateY(-6px); }
+.sz-card.selected::before { opacity: 1; }
+
+.sz-icon { font-size: 38px; line-height: 1; }
+.sz-name {
+  font-family:'Cinzel',serif; font-size:13px; letter-spacing:3px;
+  color: var(--gold); text-transform: uppercase;
+}
+.sz-desc { font-size:11px; color:var(--muted); line-height:1.7; }
+.sz-pills { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:4px; }
+.sz-pill {
+  font-size:9px; padding:3px 9px; border-radius:20px; letter-spacing:1px; text-transform:uppercase;
+  background: rgba(201,160,64,0.08); border: 1px solid rgba(201,160,64,0.22); color:var(--gold-light);
+}
+.sz-pill.custom { color: var(--muted); border-color: rgba(212,201,168,0.15); background:transparent; }
+
+.sz-confirm {
+  margin-top: 36px;
+  padding: 14px 60px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  font-family:'Cinzel',serif; font-size:11px; letter-spacing:3px; text-transform:uppercase;
+  border-radius: 4px; cursor: pointer;
+  transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+  opacity: 0.35; pointer-events: none;
+}
+.sz-confirm.ready { opacity:1; pointer-events:auto; }
+.sz-confirm.ready:hover { background: var(--gold); color: #000; box-shadow: 0 0 30px rgba(201,160,64,0.25); }
+
+@keyframes szFadeIn {
+  from { opacity:0; transform: translateY(24px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.sz-card { animation: szFadeIn 0.6s ease both; }
+.sz-card:nth-child(1){animation-delay:.05s}
+.sz-card:nth-child(2){animation-delay:.15s}
+.sz-card:nth-child(3){animation-delay:.25s}
+.sz-card:nth-child(4){animation-delay:.35s}
+</style>
+</head>
+<body>
+
+<!-- ====== PANTALLA: SELECCIÓN DE TAMAÑO ====== -->
+<div id="sizeScreen">
+  <div class="sz-brand">Atelier Floral</div>
+  <h2 class="sz-title">Selecciona el tamaño de tu ramo</h2>
+  <p class="sz-subtitle">Elige una composición para comenzar a diseñar</p>
+
+  <div class="sz-grid">
+
+    <div class="sz-card" id="sz-grande" onclick="selectSize('grande')">
+      <div class="sz-icon">💐</div>
+      <div class="sz-name">Grande</div>
+      <div class="sz-desc">Una composición exuberante y llena de vida, perfecta para ocasiones especiales.</div>
+      <div class="sz-pills">
+        <span class="sz-pill">4 grandes</span>
+        <span class="sz-pill">3 medianas</span>
+        <span class="sz-pill">3 pequeñas</span>
+      </div>
+    </div>
+
+    <div class="sz-card" id="sz-mediano" onclick="selectSize('mediano')">
+      <div class="sz-icon">🌸</div>
+      <div class="sz-name">Mediano</div>
+      <div class="sz-desc">Balance perfecto entre elegancia y sencillez, ideal para cualquier momento.</div>
+      <div class="sz-pills">
+        <span class="sz-pill">2 grandes</span>
+        <span class="sz-pill">2 medianas</span>
+        <span class="sz-pill">2 pequeñas</span>
+      </div>
+    </div>
+
+    <div class="sz-card" id="sz-pequeño" onclick="selectSize('pequeño')">
+      <div class="sz-icon">🌷</div>
+      <div class="sz-name">Pequeño</div>
+      <div class="sz-desc">Un detalle íntimo y delicado, con una flor de cada tipo seleccionada con cuidado.</div>
+      <div class="sz-pills">
+        <span class="sz-pill">1 grande</span>
+        <span class="sz-pill">1 mediana</span>
+        <span class="sz-pill">1 pequeña</span>
+      </div>
+    </div>
+
+    <div class="sz-card" id="sz-personalizado" onclick="selectSize('personalizado')">
+      <div class="sz-icon">✨</div>
+      <div class="sz-name">Personalizado</div>
+      <div class="sz-desc">Crea tu propia combinación única. Tú decides exactamente cuántas flores de cada tipo incluir.</div>
+      <div class="sz-pills">
+        <span class="sz-pill custom">mín. 1 grande</span>
+        <span class="sz-pill custom">ó 4 medianas / pequeñas</span>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="sz-confirm" id="szConfirmBtn" onclick="confirmSize()">Comenzar diseño →</button>
+</div>
+<!-- ====== FIN SELECCIÓN TAMAÑO ====== -->
+
+<div class="app">
+<header>
+  <div class="brand">Atelier Floral</div>
+  <h1>DISEÑO ARTESANAL</h1>
+</header>
+<div class="steps-bar">
+  <div class="si active" id="s1"><div class="sn">1</div><div class="sl">Fondo</div></div>
+  <div class="sc"></div>
+  <div class="si" id="s2"><div class="sn">2</div><div class="sl">Cuerpo</div></div>
+  <div class="sc"></div>
+  <div class="si" id="s3"><div class="sn">3</div><div class="sl">Frente</div></div>
+</div>
+<div class="workspace">
+  <div class="catalog">
+    <div id="catTitle" style="font-family:Cinzel; margin-bottom:15px; color:var(--gold); font-size:12px; letter-spacing:2px">CAPA I: GRANDES</div>
+    <div id="flist" class="clist"></div>
+  </div>
+  <div class="bouquet-area">
+    <div class="stage-outer" id="stage">
+      <div class="wrap-part wrap-back visible" id="wb">
+        <div class="wrap-color"></div>
+        <img src="Highly_realistic_bou-removebg-preview 1.png" class="wrap-texture" draggable="false">
+      </div>
+      <div id="flowers"></div>
+      <div class="wrap-part wrap-front visible" id="wf">
+        <div class="wrap-color"></div>
+        <img src="Highly_realistic_bou-removebg-preview 1.png" class="wrap-texture" draggable="false">
+      </div>
+    </div>
+    
+    <div class="adj-controls" id="controls">
+      <div id="fEdit">
+        <div class="adj-title">Herramientas de Flor</div>
+        
+        <!-- Arc Visualizer -->
+        <div class="arc-container">
+          <svg class="arc-svg" id="arcSvg" viewBox="-70 -10 140 90">
+            <path d="M -60 70 A 70 70 0 0 1 60 70" fill="none" stroke="rgba(201,160,64,0.15)" stroke-width="2"/>
+            <path id="arcFill" d="M 0 0 A 70 70 0 0 1 0 0" fill="none" stroke="var(--gold-light)" stroke-width="2.5" stroke-linecap="round"/>
+            <line id="arcNeedle" x1="0" y1="70" x2="0" y2="0" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" opacity="0"/>
+            <circle cx="0" cy="70" r="3" fill="var(--gold)" opacity="0.6"/>
+          </svg>
+        </div>
+
+        <div class="dial-wrap">
+          <div class="dial" id="dial"><div class="dial-dot"></div></div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:5px">Dial de Giro</div>
+        </div>
+
+        <!-- Barra de ángulo con controles -->
+        <div class="scale-box" style="margin-top:12px">
+          <div class="scale-row"><span>ÁNGULO</span><span id="rotValText">0°</span></div>
+          <div class="rot-bar-row">
+            <button class="rot-step-btn" onclick="stepRot(-5)" title="-5°">−</button>
+            <input type="range" id="fRot" min="-180" max="180" step="1" value="0" style="flex:1">
+            <button class="rot-step-btn" onclick="stepRot(5)" title="+5°">+</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px">
+            <span style="font-size:8px;color:var(--muted)">-180°</span>
+            <span style="font-size:8px;color:var(--muted)">+180°</span>
+          </div>
+        </div>
+
+        <div class="quick-btns" style="margin-top:10px">
+          <button class="quick-btn" onclick="applyQuickRot(-90)">↺ 90°</button>
+          <button class="quick-btn" onclick="applyQuickRot(-45)">↺ 45°</button>
+          <button class="quick-btn" onclick="applyQuickRot(45)">↻ 45°</button>
+          <button class="quick-btn" onclick="applyQuickRot(90)">↻ 90°</button>
+        </div>
+
+        <div class="scale-box" style="margin-top:15px">
+          <div class="scale-row"><span>ESCALA</span><span id="scaleValText">1.0x</span></div>
+          <input type="range" id="fScale" min="0.4" max="1.7" step="0.01" value="1">
+        </div>
+
+        <button class="reset-btn" style="margin-top:10px" onclick="resetSelected()">RESTABLECER POSICIÓN</button>
+        <button class="delete-btn" id="deleteBtn" onclick="removeSelected()">✕ ELIMINAR ESTA FLOR</button>
+      </div>
+
+      <div id="wEdit" style="display:none">
+        <div class="adj-title">Ajuste Envoltorio</div>
+        <div class="scale-box">
+          <div class="scale-row"><span>TAMAÑO PAPEL</span><span id="wScaleValText">1.0x</span></div>
+          <input type="range" id="wScale" min="0.8" max="1.4" step="0.01" value="1">
+        </div>
+
+        <div class="color-group">
+          <span class="color-label">Color del Papel</span>
+          <div class="color-grid">
+            <div class="color-swatch active" style="background:#e8dfcc" onclick="setWrapColor('#e8dfcc', this)" title="Natural"></div>
+            <div class="color-swatch" style="background:#f2cada" onclick="setWrapColor('#f2cada', this)" title="Rosa"></div>
+            <div class="color-swatch" style="background:#9eb091" onclick="setWrapColor('#9eb091', this)" title="Verde"></div>
+            <div class="color-swatch" style="background:#90b1c7" onclick="setWrapColor('#90b1c7', this)" title="Azul"></div>
+            <div class="color-swatch" style="background:#8e735b" onclick="setWrapColor('#8e735b', this)" title="Kraft"></div>
+            <div class="color-swatch" style="background:#1a1a1a" onclick="setWrapColor('#1a1a1a', this)" title="Negro"></div>
+            <div class="color-swatch" style="background:#f0f0f0; border:1px solid #ddd" onclick="setWrapColor('#f0f0f0', this)" title="Blanco"></div>
+            <div class="color-swatch" style="background:#7a1d1d" onclick="setWrapColor('#7a1d1d', this)" title="Tinto"></div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="act-btn on" id="finishBtn" style="display:none; margin-top:10px" onclick="finish()">FINALIZAR DISEÑO ✓</button>
+    </div>
+
+    <div style="margin-top:15px; text-align:center; color:var(--muted); font-size:11px; font-style:italic">
+      Mueve las flores libremente · Usa la rueda del ratón para escalar
+    </div>
+  </div>
+  <div class="right-panel">
+    <div class="rl">Composición</div>
+    <div id="sum" class="sum-list"></div>
+    <div class="price-box">
+      <div class="price-val" id="pval">$0.00</div>
+    </div>
+    <button class="act-btn" id="nextBtn" onclick="step()">CONTINUAR →</button>
+  </div>
+</div>
+</div>
+<div class="done-ov" id="doneOv"><div id="finalView" style="position:relative; width:400px; height:600px"></div></div>
+
+<script>
+const BASE = "fotos sin fondo tallos/";
+const FLOWERS = [
+  // ── GRANDES (Capa 1) ──
+  {id:'l1', name:'Anémona',     type:'l', p:15, img:BASE+"cayena/tallos grandes/frente.png"},
+  {id:'l2', name:'Lirio', type:'l', p:14, img:BASE+"lirios/tallo grande/frente.png"},
+  {id:'l3', name:'Girasol',      type:'l', p:12, img:BASE+"girasoles/tallos grandes/frente.png"},
+  // ── MEDIANAS (Capa 2) ──
+  {id:'m1', name:'Cayena',       type:'m', p:10, img:BASE+"flor estrella/tallo grande/frente.png"},
+  {id:'m2', name:'Fantasía',     type:'m', p:8,  img:BASE+"flores de fantasia/tallos grandes/frente.png"},
+  // ── PEQUEÑAS (Capa 3) ──
+  {id:'s1', name:'Tulipán',      type:'s', p:7,  img:BASE+"tulipanes/tallos pequeños/frente.png"},
+  {id:'s2', name:'Flor Copo',    type:'s', p:6,  img:BASE+"flor copo/tallo pequeño/frente.png"},
+  {id:'s3', name:'Normal',        type:'s', p:6,  img:BASE+"flores normales/tallos pequeños/frente.png"}
+];
+// Plantillas de slots (máximo 4 por capa)
+const ALL_SLOTS = {
+  l: [{x:45,y:55,r:-5,s:1},{x:55,y:55,r:5,s:1},{x:48,y:50,r:-2,s:1.1},{x:52,y:50,r:2,s:1.1}],
+  m: [{x:46,y:62,r:-10,s:1},{x:50,y:58,r:0,s:1.05},{x:54,y:62,r:10,s:1},{x:44,y:60,r:15,s:0.95}],
+  s: [{x:47,y:65,r:-8,s:0.85},{x:50,y:66,r:0,s:0.85},{x:53,y:65,r:8,s:0.85},{x:44,y:67,r:-12,s:0.8}]
+};
+
+// Presets de tamaño: cuántas flores por capa
+const SIZE_PRESETS = {
+  grande:       { l:4, m:3, s:3 },
+  mediano:      { l:2, m:2, s:2 },
+  pequeño:      { l:1, m:1, s:1 },
+  personalizado:{ l:4, m:4, s:4 }  // máximo de slots disponibles
+};
+
+let CONFIG = {
+  l: { n:4, slots: ALL_SLOTS.l },
+  m: { n:3, slots: ALL_SLOTS.m.slice(0,3) },
+  s: { n:3, slots: ALL_SLOTS.s.slice(0,3) }
+};
+
+// --- Lógica pantalla de selección de tamaño ---
+let selectedSizeKey = null;
+function selectSize(key) {
+  selectedSizeKey = key;
+  document.querySelectorAll('.sz-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('sz-' + key).classList.add('selected');
+  document.getElementById('szConfirmBtn').classList.add('ready');
+}
+function confirmSize() {
+  if(!selectedSizeKey) return;
+  const preset = SIZE_PRESETS[selectedSizeKey];
+  CONFIG = {
+    l: { n: preset.l, slots: ALL_SLOTS.l.slice(0, preset.l) },
+    m: { n: preset.m, slots: ALL_SLOTS.m.slice(0, preset.m) },
+    s: { n: preset.s, slots: ALL_SLOTS.s.slice(0, preset.s) }
+  };
+  // Ocultar pantalla con animación y mostrar app
+  const ss = document.getElementById('sizeScreen');
+  ss.classList.add('hide');
+  setTimeout(() => { ss.style.display='none'; }, 800);
+  // Actualizar etiqueta de capa y renderizar catálogo
+  renderCatalog();
+}
+let tier='l', total=0, flowers=[], selected=null, drag=null, sx, sy, isFinal=false;
+let states = new Map(), wrapState={x:0, y:0, s:1}, dialDragging=false;
+
+// ===== POSICIONAMIENTO INTELIGENTE DEL ENVOLVENTE =====
+function getSmartWrapBounds() {
+  const stage = document.getElementById('stage');
+  const stageW = stage.offsetWidth;   // 400 px
+  const WRAP_BASE_W = 460;             // ancho natural de la imagen a escala 1
+
+  if(flowers.length === 0) {
+    // Sin flores: rango neutro
+    return { minS: 0.80, maxS: 1.10, centerOffsetX: 0 };
+  }
+
+  // Calcula la posición LEFT real de cada contenedor de flor
+  const stageRect = stage.getBoundingClientRect();
+  let minLeft = Infinity, maxRight = -Infinity;
+  let sumCX = 0;
+
+  flowers.forEach(f => {
+    const rect = f.el.getBoundingClientRect();
+    const flLeft  = rect.left - stageRect.left;               // px desde borde izq del stage
+    const flRight = rect.right - stageRect.left;
+    const flCX    = (rect.left + rect.right) / 2 - stageRect.left;
+    if(flLeft  < minLeft)  minLeft  = flLeft;
+    if(flRight > maxRight) maxRight = flRight;
+    sumCX += flCX;
+  });
+
+  const spreadPx = maxRight - minLeft;             // ancho total que ocupan las flores
+  const flowersCX = sumCX / flowers.length;        // centro horizontal flowers
+  const stageCX   = stageW / 2;                    // centro del stage
+
+  // Min: el envolvente debe cubrir el spread de flores + 50px de margen a cada lado
+  const minS = Math.max(0.78, Math.min(1.05, (spreadPx + 100) / WRAP_BASE_W));
+  // Max: no superar el ancho del stage
+  const maxS = Math.min(1.30, stageW / WRAP_BASE_W * 1.15);
+
+  // Offset X sugerido: centrar el wrap sobre el centro de masa de las flores
+  // (amortiguado al 50% para no forzarlo si el usuario lo movió)
+  const rawOffsetX = (flowersCX - stageCX);
+  const centerOffsetX = rawOffsetX * 0.45;
+
+  return { minS, maxS, centerOffsetX };
+}
+
+function applySmartWrap(autoCenter = true) {
+  const { minS, maxS, centerOffsetX } = getSmartWrapBounds();
+
+  // Actualizar slider con nuevos límites
+  const slider = document.getElementById('wScale');
+  slider.min = minS.toFixed(2);
+  slider.max = maxS.toFixed(2);
+
+  // Forzar escala actual dentro de límites
+  const prevS = wrapState.s;
+  wrapState.s = Math.max(minS, Math.min(maxS, wrapState.s));
+  slider.value = wrapState.s;
+  document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1) + 'x';
+  document.querySelectorAll('.wrap-part').forEach(w => w.style.setProperty('--tw', wrapState.s));
+
+  // Auto-centrar X solo si el usuario no ha movido el wrap deliberadamente (< 40px de offset manual)
+  if(autoCenter && flowers.length > 0 && Math.abs(wrapState.x) < 40) {
+    wrapState.x = centerOffsetX;
+    document.querySelectorAll('.wrap-part').forEach(w => {
+      w.style.setProperty('--tx', wrapState.x + 'px');
+      w.style.setProperty('--ty', wrapState.y + 'px');
+    });
+  }
+}
+
+
+function renderCatalog() {
+  const list = document.getElementById('flist'); list.innerHTML = '';
+  const tierFlows = FLOWERS.filter(f => f.type === tier);
+  const full = flowers.filter(f => f.tier === tier).length >= CONFIG[tier].n;
+  tierFlows.forEach(f => {
+    const d = document.createElement('div'); d.className = `fcard ${full?'locked':''}`;
+    d.onclick = () => !full && add(f);
+    d.innerHTML = `<img src="${f.img}" class="fcard-img"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
+    list.appendChild(d);
+  });
+}
+function add(f) {
+  const c = flowers.filter(fl => fl.tier === tier).length;
+  const slot = CONFIG[tier].slots[c];
+  const cont = document.createElement('div'); cont.className = 'pfl-container';
+  cont.style.left = `${slot.x}%`; cont.style.top = `${slot.y}%`;
+  // Tamaño base del contenedor y escala inicial según capa
+  // Mismo contenedor para todas, diferencia de escala más marcada para jerarquía clara
+  const tierSize = tier==='l' ? {w:'200px', baseS:1.10}
+                 : tier==='m' ? {w:'200px', baseS:0.85}
+                 :              {w:'200px', baseS:0.55};
+  cont.style.width  = tierSize.w;
+  cont.style.height = tierSize.w;
+
+  const ring = document.createElement('div'); ring.className = 'rotation-ring';
+  ring.innerHTML = `<div class="rotation-handle"><svg viewBox="0 0 12 12"><path d="M6 1.5 A4.5 4.5 0 0 1 10.5 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>`;
+  const badge = document.createElement('div'); badge.className = 'angle-badge'; badge.innerText = '0°';
+  const img = document.createElement('img'); img.src = f.img; img.className = 'pfl';
+  
+  cont.appendChild(ring); cont.appendChild(badge); cont.appendChild(img);
+  document.getElementById('flowers').appendChild(cont);
+
+  // Escala inicial según capa (no 1.0 para todos)
+  const obj = {el:cont, tier, data:f, x:0, y:0, s:tierSize.baseS, r:0, baseR:slot.r};
+  flowers.push(obj); states.set(cont, obj); total += f.p;
+  
+  cont.style.setProperty('--sx', '-200px'); cont.style.setProperty('--sy', '200px');
+  cont.style.setProperty('--s', slot.s); cont.style.setProperty('--r', slot.r+'deg');
+  cont.style.animation = 'fly 0.5s ease-out forwards';
+  
+  setTimeout(() => {
+    cont.style.animation = 'none';
+    transform(obj);
+    select(cont);
+    applySmartWrap(true);  // recalcular envolvente al añadir flor
+  }, 550);
+  updateUI();
+}
+function select(cont) {
+  if(selected) selected.classList.remove('selected');
+  selected = cont; selected.classList.add('selected');
+  if(cont.classList.contains('wrap-part')) {
+    document.getElementById('wEdit').style.display='block';
+    document.getElementById('fEdit').style.display='none';
+    // Recalcular límites inteligentes al seleccionar el wrap
+    applySmartWrap(false);
+    const slider = document.getElementById('wScale');
+    slider.value = wrapState.s;
+    document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1)+'x';
+  } else {
+    document.getElementById('fEdit').style.display='block';
+    document.getElementById('wEdit').style.display='none';
+    const s = states.get(cont);
+    
+    // Dynamic Limits Based on User Request
+    const limits = getLogicalLimits(s.tier);
+    const slider = document.getElementById('fScale');
+    slider.min = limits.minS;
+    slider.max = limits.maxS;
+    slider.value = s.s;
+    
+    document.getElementById('scaleValText').innerText = s.s.toFixed(1)+'x';
+    const rotSlider = document.getElementById('fRot');
+    rotSlider.value = s.r;
+    document.getElementById('rotValText').innerText = Math.round(s.r) + '°';
+    updateRotationUI(s.r);
+  }
+  document.getElementById('controls').classList.add('show');
+}
+
+function getLogicalLimits(t) {
+  /*
+   * Rangos ESTRICTOS por capa para mantener jerarquía visual:
+   *   l: [1.00 .. 1.60] — grandes (base 1.1)
+   *   m: [0.70 .. 0.92] — medianas (base 0.85)
+   *   s: [0.45 .. 0.65] — pequeñas (base 0.55)
+   */
+  const BASE = { l:{min:1.00,max:1.60}, m:{min:0.75,max:0.95}, s:{min:0.45,max:0.70} };
+  let minS = BASE[t].min, maxS = BASE[t].max;
+
+  const scales = { l:[], m:[], s:[] };
+  flowers.forEach(f => scales[f.tier].push(f.s));
+  const getMin = arr => arr.length ? Math.min(...arr) : null;
+  const getMax = arr => arr.length ? Math.max(...arr) : null;
+
+  if(t === 'l') {
+    // La grande mínima no puede ser menor que la mayor mediana actual
+    const maxM = getMax(scales.m);
+    if(maxM !== null) minS = Math.max(minS, maxM);
+  } else if(t === 'm') {
+    // La mediana máxima no puede superar la grande menor actual
+    const minL = getMin(scales.l);
+    if(minL !== null) maxS = Math.min(maxS, minL);
+    // La mediana mínima no puede ser menor que la mayor pequeña actual
+    const maxSm = getMax(scales.s);
+    if(maxSm !== null) minS = Math.max(minS, maxSm);
+  } else if(t === 's') {
+    // La pequeña máxima no puede superar la mediana menor actual
+    const minM = getMin(scales.m);
+    if(minM !== null) maxS = Math.min(maxS, minM);
+  }
+
+  // Garantizar que min < max siempre (margen mínimo de 0.1)
+  if(minS >= maxS - 0.1) minS = Math.max(BASE[t].min, maxS - 0.15);
+  return { minS: +minS.toFixed(2), maxS: +maxS.toFixed(2) };
+}
+
+function checkPositionConstraints(s, dy) {
+  const stage = document.getElementById('stage').getBoundingClientRect();
+  const currentTop = s.el.offsetTop + s.y;
+  
+  const tops = { l: [], m: [], s: [] };
+  flowers.forEach(f => {
+    if(f.el !== s.el) tops[f.tier].push(f.el.offsetTop + f.y);
+  });
+
+  const getMinTop = arr => arr.length ? Math.min(...arr) : null;
+  const getMaxTop = arr => arr.length ? Math.max(...arr) : null;
+
+  if(s.tier === 'l') {
+    // Large must be ABOVE all Mediums (lower Y value)
+    const minM = getMinTop(tops.m);
+    if(minM !== null && currentTop + dy > minM - 20) return false;
+  } else if(s.tier === 'm') {
+    // Medium must be BELOW all Larges AND ABOVE all Smalls
+    const maxL = getMaxTop(tops.l);
+    const minS = getMinTop(tops.s);
+    if(maxL !== null && currentTop + dy < maxL + 20) return false;
+    if(minS !== null && currentTop + dy > minS - 20) return false;
+  } else if(s.tier === 's') {
+    // Small must be BELOW all Mediums
+    const maxM = getMaxTop(tops.m);
+    if(maxM !== null && currentTop + dy < maxM + 20) return false;
+  }
+  return true;
+}
+
+function transform(s) {
+  // Clamp scale to logical limits
+  const limits = getLogicalLimits(s.tier);
+  s.s = Math.max(limits.minS, Math.min(limits.maxS, s.s));
+  
+  s.el.style.transform = `translate(-50%,-50%) translate(${s.x}px, ${s.y}px) scale(${s.s}) rotate(${s.baseR + s.r}deg)`;
+  s.el.querySelector('.angle-badge').innerText = Math.round(s.r) + '°';
+  s.el.style.setProperty('--ring-rot', `${s.r}deg`);
+}
+
+// Global Interaction Delegate
+document.getElementById('stage').addEventListener('mousedown', e => {
+  const target = e.target.closest('.pfl-container') || e.target.closest('.wrap-part');
+  if(!target) {
+    if(selected) selected.classList.remove('selected');
+    selected = null; document.getElementById('controls').classList.remove('show');
+    return;
+  }
+  const isHandle = e.target.closest('.rotation-handle');
+  if(isHandle) {
+    drag = { type:'rotate', el:target };
+  } else {
+    drag = { type:'move', el:target };
+  }
+  select(target);
+  sx = e.clientX; sy = e.clientY;
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+  e.preventDefault();
+});
+
+function onMove(e) {
+  if(!drag) return;
+  if(drag.type === 'move') {
+    const dx = e.clientX - sx; const dy = e.clientY - sy;
+    if(drag.el.classList.contains('wrap-part')) {
+      const dx = e.clientX - sx; const dy = e.clientY - sy;
+      sx = e.clientX; sy = e.clientY;
+      
+      const newX = wrapState.x + dx;
+      const newY = wrapState.y + dy;
+      
+      // Límites estrictos para el envoltorio (X e Y)
+      wrapState.x = Math.max(-150, Math.min(150, newX));
+      wrapState.y = Math.max(-300, Math.min(100, newY));
+      
+      document.querySelectorAll('.wrap-part').forEach(w => {
+        w.style.setProperty('--tx', wrapState.x+'px'); w.style.setProperty('--ty', wrapState.y+'px');
+      });
+    } else {
+      const s = states.get(drag.el);
+      const dx = e.clientX - sx; const dy = e.clientY - sy;
+
+      // Clampar la posición dentro del stage
+      const stageEl = document.getElementById('stage');
+      const stageRect = stageEl.getBoundingClientRect();
+      const elRect   = drag.el.getBoundingClientRect();
+      
+      // Límites horizontales (X)
+      const minX = -stageRect.width / 2 + 30; 
+      const maxX = stageRect.width / 2 - 30;
+      
+      // Límites verticales (Y) - El centro de la flor debe estar dentro del escenario
+      // Calculamos cuánto puede alejarse de su posición inicial
+      const currentAbsTop = s.el.offsetTop + s.y;
+      const minY = -s.el.offsetTop + 30;
+      const maxY = (650 - s.el.offsetTop) - 30;
+
+      const newX = s.x + dx;
+      const newY = s.y + dy;
+
+      // Aplicar restricciones horizontales
+      s.x = Math.max(minX, Math.min(maxX, newX));
+      sx = e.clientX;
+
+      // Aplicar restricciones verticales (tier logic + stage clamp)
+      const withinStageY = newY >= minY && newY <= maxY;
+      if(withinStageY && checkPositionConstraints(s, dy)) {
+        s.y = newY;
+        sy = e.clientY;
+      }
+      
+      transform(s);
+    }
+  } else if(drag.type === 'rotate') {
+    const s = states.get(drag.el);
+    const rect = drag.el.getBoundingClientRect();
+    const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2;
+    const angle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
+    applyAngle(s, angle, false);  // sin snap durante arrastre = control total
+  }
+}
+function onEnd() {
+  drag = null;
+  document.removeEventListener('mousemove', onMove);
+  document.removeEventListener('mouseup', onEnd);
+  // Limpiar selección si el elemento ya no es válido
+  if(selected && !document.body.contains(selected)) {
+    selected = null;
+    document.getElementById('controls').classList.remove('show');
+  }
+}
+
+// Rotation Logic with Snap
+const SNAPS = [0, 45, 90, 135, 180, -45, -90, -135, -180];
+function applyAngle(s, a, snap=true) {
+  if(snap) {
+    for(let sn of SNAPS) {
+      if(Math.abs(a - sn) < 8) {
+        if(Math.abs(a - sn) < 3 && a !== sn) triggerSnapEffect(s.el);
+        a = sn; break;
+      }
+    }
+  }
+  s.r = a; transform(s); updateRotationUI(a);
+}
+function triggerSnapEffect(el) {
+  if(el._snapping) return; el._snapping = true;
+  const f = document.createElement('div'); f.className='snap-flash'; el.appendChild(f);
+  setTimeout(() => { f.remove(); el._snapping = false; }, 400);
+}
+function updateRotationUI(a) {
+  const dial = document.getElementById('dial'); dial.style.transform = `rotate(${a}deg)`;
+  const rotSlider = document.getElementById('fRot');
+  rotSlider.value = Math.max(-180, Math.min(180, a));
+  document.getElementById('rotValText').innerText = Math.round(a) + '°';
+  updateArc(a);
+}
+function updateArc(a) {
+  const arcFill = document.getElementById('arcFill'); const needle = document.getElementById('arcNeedle');
+  const r = 70; const clamped = Math.max(-90, Math.min(90, a));
+  const rad = (clamped - 90) * Math.PI / 180;
+  const x = r * Math.cos(rad); const y = 70 + r * Math.sin(rad);
+  if(Math.abs(clamped) > 1) {
+    arcFill.setAttribute('d', `M 0 0 A 70 70 0 0 ${clamped>0?1:0} ${x} ${y}`);
+    needle.setAttribute('x2', x); needle.setAttribute('y2', y); needle.setAttribute('opacity', 0.8);
+  } else {
+    arcFill.setAttribute('d', ''); needle.setAttribute('opacity', 0);
+  }
+}
+
+// Dial Drag
+document.getElementById('dial').onmousedown = e => {
+  if(!selected || !states.has(selected)) return;
+  dialDragging = true; e.stopPropagation();
+  const move = me => {
+    const s = states.get(selected); const rect = e.currentTarget.getBoundingClientRect();
+    const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2;
+    const a = Math.atan2(me.clientY - cy, me.clientX - cx) * 180 / Math.PI + 90;
+    applyAngle(s, a);
+  };
+  const up = () => { dialDragging = false; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+  document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+};
+
+// Inputs
+document.getElementById('fScale').oninput = e => {
+  if(!selected || !states.has(selected)) return;
+  const s = states.get(selected); s.s = parseFloat(e.target.value);
+  document.getElementById('scaleValText').innerText = s.s.toFixed(1)+'x'; transform(s);
+};
+document.getElementById('fRot').oninput = e => {
+  if(!selected || !states.has(selected)) return;
+  const s = states.get(selected);
+  const a = parseFloat(e.target.value);
+  applyAngle(s, a, false);  // sin snap al mover el slider
+};
+function stepRot(delta) {
+  if(!selected || !states.has(selected)) return;
+  const s = states.get(selected);
+  const next = Math.max(-180, Math.min(180, s.r + delta));
+  applyAngle(s, next, false);
+}
+document.getElementById('wScale').oninput = e => {
+  const { minS, maxS } = getSmartWrapBounds();
+  wrapState.s = Math.max(minS, Math.min(maxS, parseFloat(e.target.value)));
+  e.target.value = wrapState.s;  // corregir si estaba fuera de rango
+  document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1)+'x';
+  document.querySelectorAll('.wrap-part').forEach(w => w.style.setProperty('--tw', wrapState.s));
+};
+function applyQuickRot(delta) {
+  if(!selected || !states.has(selected)) return;
+  const s = states.get(selected); applyAngle(s, s.r + delta, false);
+}
+function resetSelected() {
+  if(!selected || !states.has(selected)) return;
+  const s = states.get(selected); s.x=0; s.y=0; s.s=1; s.r=0;
+  document.getElementById('fScale').value=1; document.getElementById('scaleValText').innerText='1.0x';
+  document.getElementById('fRot').value=0; document.getElementById('rotValText').innerText='0°';
+  transform(s); updateRotationUI(0);
+}
+function setWrapColor(color, el) {
+  // Aplicar el color base a la variable CSS del envoltorio
+  document.querySelectorAll('.wrap-part').forEach(w => {
+    w.style.setProperty('--wc', color);
+  });
+
+  // Actualizar UI de swatches
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+function removeSelected() {
+  if(!selected || !states.has(selected)) return;
+  const s = states.get(selected);
+  total -= s.data.p;
+  flowers = flowers.filter(f => f.el !== selected);
+  states.delete(selected);
+  selected.remove();
+  selected = null;
+  document.getElementById('controls').classList.remove('show');
+  updateUI();
+  renderCatalog();
+}
+
+// Wheel Scale
+document.getElementById('stage').addEventListener('wheel', e => {
+  if(!selected) return;
+  e.preventDefault();
+  if(selected.classList.contains('wrap-part')) {
+    const { minS, maxS } = getSmartWrapBounds();
+    wrapState.s = Math.max(minS, Math.min(maxS, wrapState.s + (e.deltaY > 0 ? -0.03 : 0.03)));
+    document.getElementById('wScale').value = wrapState.s;
+    document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1)+'x';
+    document.querySelectorAll('.wrap-part').forEach(w => w.style.setProperty('--tw', wrapState.s));
+  } else {
+    const s = states.get(selected);
+    s.s = Math.max(0.3, Math.min(2, s.s + (e.deltaY > 0 ? -0.05 : 0.05)));
+    document.getElementById('fScale').value = s.s; transform(s);
+    document.getElementById('scaleValText').innerText = s.s.toFixed(1)+'x';
+  }
+}, {passive:false});
+
+function step() {
+  if(tier==='l') { tier='m'; document.getElementById('s1').classList.remove('active'); document.getElementById('s2').classList.add('active'); }
+  else if(tier==='m') { tier='s'; document.getElementById('s2').classList.remove('active'); document.getElementById('s3').classList.add('active'); }
+  else { document.getElementById('finishBtn').style.display='block'; document.getElementById('nextBtn').style.display='none'; return; }
+  document.getElementById('nextBtn').classList.remove('on'); renderCatalog();
+}
+function finish() {
+  // Limpiar estados de selección para que no aparezcan en el resultado final
+  if(selected) { selected.classList.remove('selected'); selected = null; }
+  document.getElementById('controls').classList.remove('show');
+  // Breve pausa para que el DOM actualice antes de clonar
+  requestAnimationFrame(() => {
+    document.getElementById('finalView').innerHTML = document.getElementById('stage').innerHTML;
+    document.getElementById('doneOv').classList.add('show');
+  });
+}
+function updateUI() {
+  document.getElementById('pval').innerText = `$${total}.00`;
+  const sum = document.getElementById('sum'); sum.innerHTML = '';
+  flowers.forEach(f => {
+    const d = document.createElement('div'); d.className = 'ri';
+    d.innerHTML = `<img src="${f.data.img}"><span>${f.data.name}</span>`;
+    sum.appendChild(d);
+  });
+  if(flowers.filter(f => f.tier === tier).length >= CONFIG[tier].n) document.getElementById('nextBtn').classList.add('on');
+  renderCatalog();
+}
+renderCatalog();
+</script>
+</body>
+</html>
