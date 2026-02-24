@@ -63,8 +63,8 @@ h1{font-family:'Cinzel',serif;font-size:24px;font-weight:400;letter-spacing:2px}
 .wrap-color {
   position: absolute; inset: 0;
   background-color: var(--wc);
-  -webkit-mask: url("Highly_realistic_bou-removebg-preview 1.png") no-repeat bottom center / contain;
-  mask: url("Highly_realistic_bou-removebg-preview 1.png") no-repeat bottom center / contain;
+  -webkit-mask: url("envoltura.png") no-repeat bottom center / contain;
+  mask: url("envoltura.png") no-repeat bottom center / contain;
   transition: background-color 0.4s;
 }
 .wrap-texture {
@@ -358,7 +358,7 @@ input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
       <div class="sz-name">Grande</div>
       <div class="sz-desc">Una composición exuberante y llena de vida, perfecta para ocasiones especiales.</div>
       <div class="sz-pills">
-        <span class="sz-pill">4 grandes</span>
+        <span class="sz-pill">3 grandes</span>
         <span class="sz-pill">3 medianas</span>
         <span class="sz-pill">3 pequeñas</span>
       </div>
@@ -369,9 +369,9 @@ input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
       <div class="sz-name">Mediano</div>
       <div class="sz-desc">Balance perfecto entre elegancia y sencillez, ideal para cualquier momento.</div>
       <div class="sz-pills">
-        <span class="sz-pill">2 grandes</span>
+        <span class="sz-pill">3 grandes</span>
         <span class="sz-pill">2 medianas</span>
-        <span class="sz-pill">2 pequeñas</span>
+        <span class="sz-pill">3 pequeñas</span>
       </div>
     </div>
 
@@ -381,8 +381,8 @@ input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
       <div class="sz-desc">Un detalle íntimo y delicado, con una flor de cada tipo seleccionada con cuidado.</div>
       <div class="sz-pills">
         <span class="sz-pill">1 grande</span>
-        <span class="sz-pill">1 mediana</span>
-        <span class="sz-pill">1 pequeña</span>
+        <span class="sz-pill">2 medianas</span>
+        <span class="sz-pill">2 pequeñas</span>
       </div>
     </div>
 
@@ -423,12 +423,12 @@ input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     <div class="stage-outer" id="stage">
       <div class="wrap-part wrap-back visible" id="wb">
         <div class="wrap-color"></div>
-        <img src="Highly_realistic_bou-removebg-preview 1.png" class="wrap-texture" draggable="false">
+        <img src="envoltura.png" class="wrap-texture" draggable="false">
       </div>
       <div id="flowers"></div>
       <div class="wrap-part wrap-front visible" id="wf">
         <div class="wrap-color"></div>
-        <img src="Highly_realistic_bou-removebg-preview 1.png" class="wrap-texture" draggable="false">
+        <img src="envoltura.png" class="wrap-texture" draggable="false">
       </div>
     </div>
     
@@ -526,16 +526,16 @@ input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 const BASE = "fotos sin fondo tallos/";
 const FLOWERS = [
   // ── GRANDES (Capa 1) ──
-  {id:'l1', name:'Anémona',     type:'l', p:15, img:BASE+"cayena/tallos grandes/frente.png"},
-  {id:'l2', name:'Lirio', type:'l', p:14, img:BASE+"lirios/tallo grande/frente.png"},
-  {id:'l3', name:'Girasol',      type:'l', p:12, img:BASE+"girasoles/tallos grandes/frente.png"},
+  {id:'l1', name:'Anémona',     type:'l', p:15, img:BASE+"cayena/tallos grandes/frente.png", thumb:BASE+"cayena/sin tallo/up.png"},
+  {id:'l2', name:'Lirio', type:'l', p:14, img:BASE+"lirios/tallo grande/frente.png", thumb:BASE+"lirios/sin tallo/up.png"},
+  {id:'l3', name:'Girasol',      type:'l', p:12, img:BASE+"girasoles/tallos grandes/frente.png", thumb:BASE+"girasoles/sin tallo/up.png"},
   // ── MEDIANAS (Capa 2) ──
-  {id:'m1', name:'Cayena',       type:'m', p:10, img:BASE+"flor estrella/tallo grande/frente.png"},
-  {id:'m2', name:'Fantasía',     type:'m', p:8,  img:BASE+"flores de fantasia/tallos grandes/frente.png"},
+  {id:'m1', name:'Cayena',       type:'m', p:10, img:BASE+"flor estrella/tallo grande/frente.png", thumb:BASE+"flor estrella/sin tallo/up.png"},
+  {id:'m2', name:'Fantasía',     type:'m', p:8,  img:BASE+"flores de fantasia/tallos grandes/frente.png", thumb:BASE+"flores de fantasia/sin tallo/up.png"},
   // ── PEQUEÑAS (Capa 3) ──
-  {id:'s1', name:'Tulipán',      type:'s', p:7,  img:BASE+"tulipanes/tallos pequeños/frente.png"},
-  {id:'s2', name:'Flor Copo',    type:'s', p:6,  img:BASE+"flor copo/tallo pequeño/frente.png"},
-  {id:'s3', name:'Normal',        type:'s', p:6,  img:BASE+"flores normales/tallos pequeños/frente.png"}
+  {id:'s1', name:'Tulipán',      type:'s', p:7,  img:BASE+"tulipanes/tallos pequeños/frente.png", thumb:BASE+"tulipanes/sin tallo/up.png"},
+  {id:'s2', name:'Flor Copo',    type:'s', p:6,  img:BASE+"flor copo/tallo pequeño/frente.png", thumb:BASE+"flor copo/sin tallo/up.png"},
+  {id:'s3', name:'Normal',        type:'s', p:6,  img:BASE+"flores normales/tallos pequeños/frente.png", thumb:BASE+"flores normales/sin tallo/up.png"}
 ];
 // Plantillas de slots (máximo 4 por capa)
 const ALL_SLOTS = {
@@ -546,9 +546,9 @@ const ALL_SLOTS = {
 
 // Presets de tamaño: cuántas flores por capa
 const SIZE_PRESETS = {
-  grande:       { l:4, m:3, s:3 },
-  mediano:      { l:2, m:2, s:2 },
-  pequeño:      { l:1, m:1, s:1 },
+  grande:       { l:3, m:3, s:3 },
+  mediano:      { l:3, m:2, s:3 },
+  pequeño:      { l:1, m:2, s:2 },
   personalizado:{ l:4, m:4, s:4 }  // máximo de slots disponibles
 };
 
@@ -660,7 +660,7 @@ function renderCatalog() {
   tierFlows.forEach(f => {
     const d = document.createElement('div'); d.className = `fcard ${full?'locked':''}`;
     d.onclick = () => !full && add(f);
-    d.innerHTML = `<img src="${f.img}" class="fcard-img"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
+    d.innerHTML = `<img src="${f.thumb}" class="fcard-img"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
     list.appendChild(d);
   });
 }
@@ -1053,7 +1053,7 @@ function updateUI() {
   const sum = document.getElementById('sum'); sum.innerHTML = '';
   flowers.forEach(f => {
     const d = document.createElement('div'); d.className = 'ri';
-    d.innerHTML = `<img src="${f.data.img}"><span>${f.data.name}</span>`;
+    d.innerHTML = `<img src="${f.data.thumb}"><span>${f.data.name}</span>`;
     sum.appendChild(d);
   });
   if(flowers.filter(f => f.tier === tier).length >= CONFIG[tier].n) document.getElementById('nextBtn').classList.add('on');
