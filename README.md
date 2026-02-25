@@ -156,6 +156,16 @@ Personaliza rotación, escala y envoltura.
 Diseña tu composición floral premium.
 
 Vista Previa:
+https://soft-kulfi-7c37e6.netlify.app/
+
+
+<img width="1387" height="687" alt="image" src="https://github.com/user-attachments/assets/a5a716fd-189d-4ab5-9fc0-68dcf66059e1" />
+
+<img width="1842" height="1017" alt="image" src="https://github.com/user-attachments/assets/1b0eff46-56f0-439b-b42e-f543b691162e" />
+
+<img width="972" height="880" alt="image" src="https://github.com/user-attachments/assets/5c73232c-3b51-4157-b02f-cb717eb92117" />
+
+
 
 
 
