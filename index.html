@@ -48,6 +48,8 @@ h1{font-family:'Cinzel',serif;font-size:24px;font-weight:400;letter-spacing:2px}
   overflow: hidden;
   border-bottom: 2px solid rgba(201,160,64,0.1);
   cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .wrap-part {
@@ -141,15 +143,36 @@ h1{font-family:'Cinzel',serif;font-size:24px;font-weight:400;letter-spacing:2px}
 
 /* Selection Controls Panel */
 .adj-controls {
-  position: absolute; top: 10px; right: 10px;
-  background: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid var(--gold);
-  display: flex; opacity: 0; pointer-events: none; flex-direction: column; gap: 15px;
-  z-index: 1000; backdrop-filter: blur(12px); width: 240px; transition: 0.3s;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  position: fixed; top: 120px; right: 20px;
+  background: var(--panel); border-radius: 12px; border: 1px solid var(--gold);
+  display: flex; opacity: 0; pointer-events: none; flex-direction: column;
+  z-index: 1000; backdrop-filter: blur(16px); width: 260px; transition: opacity 0.3s, transform 0.3s;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  overflow: hidden;
 }
 .adj-controls.show { opacity: 1; pointer-events: auto; }
+.adj-controls.minimized .adj-content { display: none; }
+.adj-controls.minimized { width: 180px; }
 
-.adj-title { font-family: Cinzel; color: var(--gold); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.adj-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 15px; background: rgba(201,160,64,0.1);
+  cursor: move; border-bottom: 1px solid var(--border);
+}
+.adj-title { 
+  font-family: Cinzel; color: var(--gold); font-size: 9px; 
+  letter-spacing: 2px; text-transform: uppercase; margin: 0;
+}
+.adj-actions { display: flex; gap: 8px; }
+.adj-btn {
+  background: none; border: none; color: var(--gold); 
+  cursor: pointer; padding: 2px; opacity: 0.6; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.adj-btn:hover { opacity: 1; transform: scale(1.1); }
+.adj-btn svg { width: 14px; height: 14px; }
+
+.adj-content { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
 
 /* Dial logic */
 .dial-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -433,8 +456,20 @@ input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     </div>
     
     <div class="adj-controls" id="controls">
-      <div id="fEdit">
-        <div class="adj-title">Herramientas de Flor</div>
+      <div class="adj-header" id="controlsHeader">
+        <h3 class="adj-title" id="adjTitle">Herramientas</h3>
+        <div class="adj-actions">
+          <button class="adj-btn" onclick="toggleMinimize()" title="Minimizar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button class="adj-btn" onclick="deselectAll()" title="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="adj-content">
+        <div id="fEdit">
         
         <!-- Arc Visualizer -->
         <div class="arc-container">
@@ -503,7 +538,8 @@ input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
         </div>
       </div>
       
-      <button class="act-btn on" id="finishBtn" style="display:none; margin-top:10px" onclick="finish()">FINALIZAR DISEÑO ✓</button>
+        <button class="act-btn on" id="finishBtn" style="display:none; margin-top:10px" onclick="finish()">FINALIZAR DISEÑO ✓</button>
+      </div>
     </div>
 
     <div style="margin-top:15px; text-align:center; color:var(--muted); font-size:11px; font-style:italic">
@@ -526,17 +562,24 @@ input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 const BASE = "fotos sin fondo tallos/";
 const FLOWERS = [
   // ── GRANDES (Capa 1) ──
-  {id:'l1', name:'Anémona',     type:'l', p:15, img:BASE+"cayena/tallos grandes/frente.png", thumb:BASE+"cayena/sin tallo/up.png"},
-  {id:'l2', name:'Lirio', type:'l', p:14, img:BASE+"lirios/tallo grande/frente.png", thumb:BASE+"lirios/sin tallo/up.png"},
-  {id:'l3', name:'Girasol',      type:'l', p:12, img:BASE+"girasoles/tallos grandes/frente.png", thumb:BASE+"girasoles/sin tallo/up.png"},
+  {id:'l1', name:'Anémona',     type:'l', p:15, img:BASE+"cayena/tallos grandes/frente.webp", thumb:BASE+"cayena/sin tallo/up.webp"},
+  {id:'l2', name:'Lirio', type:'l', p:14, img:BASE+"lirios/tallo grande/frente.webp", thumb:BASE+"lirios/sin tallo/up.webp"},
+  {id:'l3', name:'Girasol',      type:'l', p:12, img:BASE+"girasoles/tallos grandes/frente.webp", thumb:BASE+"girasoles/sin tallo/up.webp"},
   // ── MEDIANAS (Capa 2) ──
-  {id:'m1', name:'Cayena',       type:'m', p:10, img:BASE+"flor estrella/tallo grande/frente.png", thumb:BASE+"flor estrella/sin tallo/up.png"},
-  {id:'m2', name:'Fantasía',     type:'m', p:8,  img:BASE+"flores de fantasia/tallos grandes/frente.png", thumb:BASE+"flores de fantasia/sin tallo/up.png"},
+  {id:'m1', name:'Cayena',       type:'m', p:10, img:BASE+"flor estrella/tallo grande/frente.webp", thumb:BASE+"flor estrella/sin tallo/up.webp"},
+  {id:'m2', name:'Fantasía',     type:'m', p:8,  img:BASE+"flores de fantasia/tallos grandes/frente.webp", thumb:BASE+"flores de fantasia/sin tallo/up.webp"},
   // ── PEQUEÑAS (Capa 3) ──
-  {id:'s1', name:'Tulipán',      type:'s', p:7,  img:BASE+"tulipanes/tallos pequeños/frente.png", thumb:BASE+"tulipanes/sin tallo/up.png"},
-  {id:'s2', name:'Flor Copo',    type:'s', p:6,  img:BASE+"flor copo/tallo pequeño/frente.png", thumb:BASE+"flor copo/sin tallo/up.png"},
-  {id:'s3', name:'Normal',        type:'s', p:6,  img:BASE+"flores normales/tallos pequeños/frente.png", thumb:BASE+"flores normales/sin tallo/up.png"}
+  {id:'s1', name:'Tulipán',      type:'s', p:7,  img:BASE+"tulipanes/tallos pequeños/frente.webp", thumb:BASE+"tulipanes/sin tallo/up.webp"},
+  {id:'s2', name:'Flor Copo',    type:'s', p:6,  img:BASE+"flor copo/tallo pequeño/frente.webp", thumb:BASE+"flor copo/sin tallo/up.webp"},
+  {id:'s3', name:'Normal',        type:'s', p:6,  img:BASE+"flores normales/tallos pequeños/frente.webp", thumb:BASE+"flores normales/sin tallo/up.webp"}
 ];
+
+// Fallback logic for images (tries webp, then png)
+function getImgPath(path) {
+  // Simple check to see if we can use webp, if it fails, the browser handles it or we could use <picture>
+  // Here we just use the provided path which we already changed to .webp
+  return path;
+}
 // Plantillas de slots (máximo 4 por capa)
 const ALL_SLOTS = {
   l: [{x:45,y:55,r:-5,s:1},{x:55,y:55,r:5,s:1},{x:48,y:50,r:-2,s:1.1},{x:52,y:50,r:2,s:1.1}],
@@ -660,7 +703,7 @@ function renderCatalog() {
   tierFlows.forEach(f => {
     const d = document.createElement('div'); d.className = `fcard ${full?'locked':''}`;
     d.onclick = () => !full && add(f);
-    d.innerHTML = `<img src="${f.thumb}" class="fcard-img"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
+    d.innerHTML = `<img src="${f.thumb}" class="fcard-img" onerror="this.src=this.src.replace('.webp','.png')"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
     list.appendChild(d);
   });
 }
@@ -681,6 +724,7 @@ function add(f) {
   ring.innerHTML = `<div class="rotation-handle"><svg viewBox="0 0 12 12"><path d="M6 1.5 A4.5 4.5 0 0 1 10.5 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>`;
   const badge = document.createElement('div'); badge.className = 'angle-badge'; badge.innerText = '0°';
   const img = document.createElement('img'); img.src = f.img; img.className = 'pfl';
+  img.onerror = function() { if(this.src.endsWith('.webp')) this.src = this.src.replace('.webp', '.png'); };
   
   cont.appendChild(ring); cont.appendChild(badge); cont.appendChild(img);
   document.getElementById('flowers').appendChild(cont);
@@ -728,9 +772,46 @@ function select(cont) {
     const rotSlider = document.getElementById('fRot');
     rotSlider.value = s.r;
     document.getElementById('rotValText').innerText = Math.round(s.r) + '°';
+    
+    document.getElementById('adjTitle').innerText = 'Flor: ' + s.data.name;
     updateRotationUI(s.r);
   }
   document.getElementById('controls').classList.add('show');
+}
+
+function deselectAll() {
+  if(selected) selected.classList.remove('selected');
+  selected = null; 
+  document.getElementById('controls').classList.remove('show');
+}
+
+function toggleMinimize() {
+  document.getElementById('controls').classList.toggle('minimized');
+}
+
+// Draggable Controls logic
+let panelDrag = null;
+const panel = document.getElementById('controls');
+const header = document.getElementById('controlsHeader');
+
+header.onmousedown = e => {
+  if(e.target.closest('.adj-btn')) return;
+  panelDrag = { x: e.clientX - panel.offsetLeft, y: e.clientY - panel.offsetTop };
+  document.addEventListener('mousemove', onPanelMove);
+  document.addEventListener('mouseup', onPanelEnd);
+};
+
+function onPanelMove(e) {
+  if(!panelDrag) return;
+  panel.style.left = (e.clientX - panelDrag.x) + 'px';
+  panel.style.top = (e.clientY - panelDrag.y) + 'px';
+  panel.style.right = 'auto'; // Disable right anchoring
+}
+
+function onPanelEnd() {
+  panelDrag = null;
+  document.removeEventListener('mousemove', onPanelMove);
+  document.removeEventListener('mouseup', onPanelEnd);
 }
 
 function getLogicalLimits(t) {
@@ -811,13 +892,20 @@ function transform(s) {
 }
 
 // Global Interaction Delegate
-document.getElementById('stage').addEventListener('mousedown', e => {
+document.addEventListener('mousedown', e => {
+  const stage = document.getElementById('stage');
+  const controls = document.getElementById('controls');
+  
   const target = e.target.closest('.pfl-container') || e.target.closest('.wrap-part');
-  if(!target) {
-    if(selected) selected.classList.remove('selected');
-    selected = null; document.getElementById('controls').classList.remove('show');
+  
+  // Si click fuera del stage y fuera del panel de controles, deseleccionar
+  if(!target && !e.target.closest('#controls') && !e.target.closest('.fcard')) {
+    deselectAll();
     return;
   }
+  
+  if(!target) return; // Si click en controles o card, no hacer nada más aquí
+
   const isHandle = e.target.closest('.rotation-handle');
   if(isHandle) {
     drag = { type:'rotate', el:target };
@@ -1053,7 +1141,7 @@ function updateUI() {
   const sum = document.getElementById('sum'); sum.innerHTML = '';
   flowers.forEach(f => {
     const d = document.createElement('div'); d.className = 'ri';
-    d.innerHTML = `<img src="${f.data.thumb}"><span>${f.data.name}</span>`;
+    d.innerHTML = `<img src="${f.data.thumb}" onerror="this.src=this.src.replace('.webp','.png')"><span>${f.data.name}</span>`;
     sum.appendChild(d);
   });
   if(flowers.filter(f => f.tier === tier).length >= CONFIG[tier].n) document.getElementById('nextBtn').classList.add('on');
